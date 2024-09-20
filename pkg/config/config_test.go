@@ -1,9 +1,9 @@
 package config_test
 
 import (
-	"github.com/StandardRunbook/plugin-template-go/app/config"
 	"testing"
 
+	"github.com/StandardRunbook/plugin-shell-script/pkg/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,7 +13,7 @@ func TestLoadConfigArguments(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	expectedConfig := &config.Config{
+	expectedConfig := &config.ShellScriptConfig{
 		Name:           "PeriodicTrigger",
 		Version:        "v1.0.0",
 		ExpectedOutput: "run.go run.sh run_test.go",

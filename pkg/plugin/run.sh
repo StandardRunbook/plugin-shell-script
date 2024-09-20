@@ -29,21 +29,18 @@ die() {
   exit "$code"
 }
 
-# Set default values
-flag=0
-param="default_value"
-args=("./")
+# Ensure that a script is provided as an argument
+if [[ $# -lt 1 ]]; then
+  die "${RED}Error: No script provided${NOFORMAT}"
+fi
+
+script_path="$1"
 
 setup_colors
 
-# Core script logic here
-msg "${BLUE}Running script with the following values:${NOFORMAT}"
-msg "- flag: ${flag}"
-msg "- param: ${param}"
-msg "- arguments: ${args[*]-}"
-
-# Add your script logic below this
-# Example logic:
-ls "${args[*]-}"
-
-
+# Check if the script exists
+if [[ -f "$script_path" ]]; then
+  bash "$script_path"
+else
+  echo "script not found!"
+fi

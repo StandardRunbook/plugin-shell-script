@@ -1,4 +1,4 @@
-module github.com/StandardRunbook/plugin-template-go
+module github.com/StandardRunbook/plugin-shell-script
 
 go 1.22.2
 
