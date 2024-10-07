@@ -17,9 +17,15 @@ func TestTemplate_Run(t *testing.T) {
 		ScriptArguments: []string{"./test.sh"},
 	}
 	shellScriptPlugin := plugin.NewShellScriptPlugin(cfg)
-	require.Equal(t, shellScriptPlugin.Name(), "test-shell-script")
-	require.Equal(t, shellScriptPlugin.Version(), "v1.0.0")
-	err := shellScriptPlugin.Run()
+	name, err := shellScriptPlugin.Name()
 	require.NoError(t, err)
-	require.Equal(t, shellScriptPlugin.ParseOutput(), "success")
+	require.Equal(t, name, "test-shell-script")
+	version, err := shellScriptPlugin.Version()
+	require.NoError(t, err)
+	require.Equal(t, version, "v1.0.0")
+	err = shellScriptPlugin.Run()
+	require.NoError(t, err)
+	output, err := shellScriptPlugin.ParseOutput()
+	require.NoError(t, err)
+	require.Equal(t, output, "success")
 }

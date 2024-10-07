@@ -7,14 +7,14 @@ import (
 	"os/exec"
 	"strings"
 
-	pluginInterface "github.com/StandardRunbook/plugin-interface"
+	pluginInterface "github.com/StandardRunbook/plugin-interface/shared"
 	"github.com/StandardRunbook/plugin-shell-script/pkg/config"
 )
 
 //go:embed run.sh
 var runScript []byte
 
-type ShellScriptConfig struct {
+type ShellScriptPlugin struct {
 	name           string
 	version        string
 	arguments      []string
@@ -22,15 +22,29 @@ type ShellScriptConfig struct {
 	expectedOutput string
 }
 
-func (t *ShellScriptConfig) Name() string {
-	return t.name
+func (t *ShellScriptPlugin) Init(m map[string]string) error {
+	t.name = m["name"]
+	t.version = m["version"]
+	t.arguments = strings.Split(m["arguments"], ",")
+	t.expectedOutput = m["expected_output"]
+	return nil
 }
 
-func (t *ShellScriptConfig) Version() string {
-	return t.version
+func (t *ShellScriptPlugin) Name() (string, error) {
+	if strings.EqualFold(t.name, "") {
+		return "invalid plugin", fmt.Errorf("plugin name is empty")
+	}
+	return t.name, nil
 }
 
-func (t *ShellScriptConfig) Run() error {
+func (t *ShellScriptPlugin) Version() (string, error) {
+	if strings.EqualFold(t.version, "") {
+		return "invalid version", fmt.Errorf("plugin version is empty")
+	}
+	return t.version, nil
+}
+
+func (t *ShellScriptPlugin) Run() error {
 	// Step 1: Create a temporary file
 	tmpFile, err := os.CreateTemp("", "script-*.sh")
 	if err != nil {
@@ -39,9 +53,13 @@ func (t *ShellScriptConfig) Run() error {
 	defer os.Remove(tmpFile.Name()) // Ensure the file is removed after execution
 
 	// Step 2: Write the embedded script to the temporary file
+	name, err := t.Name()
+	if err != nil {
+		return err
+	}
 	_, err = tmpFile.Write(runScript)
 	if err != nil {
-		return fmt.Errorf("failed to write '%s' script to temporary file: %w", t.Name(), err)
+		return fmt.Errorf("failed to write '%s' script to temporary file: %w", name, err)
 	}
 
 	// Step 3: Close the file to flush writes and prepare it for execution
@@ -70,15 +88,15 @@ func (t *ShellScriptConfig) Run() error {
 	return nil
 }
 
-func (t *ShellScriptConfig) ParseOutput() string {
-	if strings.Contains(t.output, t.expectedOutput) {
-		return "success"
+func (t *ShellScriptPlugin) ParseOutput() (string, error) {
+	if strings.EqualFold(t.output, t.expectedOutput) {
+		return "success", nil
 	}
-	return "failure"
+	return "failure", fmt.Errorf("output '%s' is not expected: %s", t.output, t.expectedOutput)
 }
 
 func NewShellScriptPlugin(cfg *config.ShellScriptConfig) pluginInterface.IPlugin {
-	return &ShellScriptConfig{
+	return &ShellScriptPlugin{
 		name:           cfg.Name,
 		version:        cfg.Version,
 		arguments:      cfg.ScriptArguments,
